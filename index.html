@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ski Prep Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #4a9eff;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .progress-container {
+            background: #1a1a1a;
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9eff 0%, #00d4ff 100%);
+            transition: width 0.3s ease;
+        }
+
+        .week-nav {
+            background: #151515;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .week-nav button {
+            background: #2a2a2a;
+            border: none;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .week-nav button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .week-nav button:not(:disabled):active {
+            background: #3a3a3a;
+        }
+
+        .week-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .day-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a2a;
+            transition: all 0.2s;
+        }
+
+        .day-card.today {
+            border: 2px solid #4a9eff;
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.2);
+        }
+
+        .day-card.completed {
+            opacity: 0.7;
+            border-color: #2d5016;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .day-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .day-card.today .day-title {
+            color: #4a9eff;
+        }
+
+        .today-badge {
+            background: #4a9eff;
+            color: #0a0a0a;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .activity-group {
+            margin-bottom: 15px;
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border: 2px solid #3a3a3a;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-top: 2px;
+        }
+
+        .checkbox:active {
+            transform: scale(0.95);
+        }
+
+        .checkbox.checked {
+            background: #4a9eff;
+            border-color: #4a9eff;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: #0a0a0a;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .activity-details {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .activity-details ul {
+            margin: 8px 0 0 20px;
+        }
+
+        .activity-details li {
+            margin: 4px 0;
+        }
+
+        .notes-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .notes-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 80px;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 10px;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+
+        .rest-day {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .rest-day-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .completion-badge {
+            display: inline-block;
+            background: #2d5016;
+            color: #7cfc00;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .header-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .day-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎿 Ski Prep Program</h1>
+        <div class="header-info">
+            <span>Nov 13 - Dec 25, 2024</span>
+            <span>Goal: 90kg → 85kg</span>
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-label">
+            <span>Overall Progress</span>
+            <span id="progressText">0/30 sessions</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="week-nav">
+        <button id="prevWeek">← Previous</button>
+        <div class="week-title" id="weekTitle">Week 1</div>
+        <button id="nextWeek">Next →</button>
+    </div>
+
+    <div class="content" id="content"></div>
+
+    <script>
+        const programData = {
+            weeks: [
+                {
+                    name: "Week 1 (Nov 13-19)",
+                    phase: "FOUNDATION",
+                    goal: "Rebuild base fitness, establish movement patterns, monitor knee response",
+                    days: [
+                        {
+                            date: "2024-11-13",
+                            title: "THURSDAY NOV 13",
+                            subtitle: "Gym Session 1",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 20min jog at 8.0-8.5 km/h, 1% incline (Zone 2-3) • 5min walk cooldown • Total: 30min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    details: "Leg Press: 3×12 @ 50kg\nLeg Extension: 3×12 @ 30kg\nCalf Raises: 3×15 @ 60kg\nWall Sit: 3×30sec\nPlank: 3×30sec",
+                                    list: [
+                                        "Leg Press: 3×12 @ 50kg (slow 3-second descent)",
+                                        "Leg Extension: 3×12 @ 30kg",
+                                        "Calf Raises: 3×15 @ 60kg",
+                                        "Wall Sit: 3×30 seconds",
+                                        "Plank: 3×30 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-14",
+                            title: "FRIDAY NOV 14",
+                            subtitle: "Rouvy Session 1",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min easy spin warmup • 30min steady ride in Zone 2 (126-147 bpm) • 5min easy cooldown • Total: 40min • Cadence: 80-90 RPM"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-15",
+                            title: "SATURDAY NOV 15",
+                            subtitle: "Gym Session 2",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 22min jog at 8.0-8.5 km/h, 1% incline (Zone 2-3) • 5min walk cooldown • Total: 32min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Bulgarian Split Squat: 3×8 reps each leg",
+                                        "Leg Press: 3×12 @ 50kg",
+                                        "Hamstring Curls: 3×12 @ 25kg",
+                                        "Single-Leg Calf Raise: 3×10 each leg",
+                                        "Side Plank: 3×20sec each side"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-16",
+                            title: "SUNDAY NOV 16",
+                            subtitle: "REST DAY",
+                            rest: true
+                        },
+                        {
+                            date: "2024-11-17",
+                            title: "MONDAY NOV 17",
+                            subtitle: "Rouvy Session 2",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min easy warmup • 35min steady in Zone 2 • 5min cooldown • Total: 45min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-18",
+                            title: "TUESDAY NOV 18",
+                            subtitle: "Gym Session 3",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 25min jog at 8.0-8.5 km/h, 1% incline • 5min walk cooldown • Total: 35min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 3×15 @ 50kg (explosive up, slow down)",
+                                        "Step-Ups: 3×10 each leg",
+                                        "Leg Extension: 3×12 @ 30kg",
+                                        "Seated Calf Raise: 3×15 @ 30kg",
+                                        "Dead Bug: 3×10 each side"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-19",
+                            title: "WEDNESDAY NOV 19",
+                            subtitle: "REST DAY",
+                            rest: true
+                        }
+                    ]
+                },
+                {
+                    name: "Week 2 (Nov 20-26)",
+                    phase: "FOUNDATION",
+                    goal: "Rebuild base fitness, establish movement patterns, monitor knee response",
+                    days: [
+                        {
+                            date: "2024-11-20",
+                            title: "THURSDAY NOV 20",
+                            subtitle: "Gym Session 1",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 25min jog at 8.5 km/h, 1% incline (Zone 2-3) • 5min walk cooldown • Total: 35min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 3×12 @ 55kg (slow eccentric)",
+                                        "Leg Extension: 3×12 @ 35kg",
+                                        "Goblet Squat: 3×10 (light weight, focus on form)",
+                                        "Calf Raises: 3×15 @ 65kg",
+                                        "Plank: 3×40 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-21",
+                            title: "FRIDAY NOV 21",
+                            subtitle: "Rouvy Session 1",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min warmup • 40min steady in Zone 2 • 5min cooldown • Total: 50min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-22",
+                            title: "SATURDAY NOV 22",
+                            subtitle: "Gym Session 2",
+                            activities: [
+                                {
+                                    name: "Treadmill - First Intervals",
+                                    details: "5min walk warmup • 8×(2min at 9.0 km/h / 2min at 7.5 km/h) - 32min total • 5min walk cooldown • Total: 42min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Bulgarian Split Squat: 3×10 each leg",
+                                        "Leg Press: 3×12 @ 55kg",
+                                        "Hamstring Curls: 3×12 @ 30kg",
+                                        "Single-Leg Calf Raise: 3×12 each leg",
+                                        "Side Plank: 3×25sec each side"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-23",
+                            title: "SUNDAY NOV 23",
+                            subtitle: "REST DAY",
+                            rest: true
+                        },
+                        {
+                            date: "2024-11-24",
+                            title: "MONDAY NOV 24",
+                            subtitle: "Rouvy Session 2",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min warmup • 40min steady in Zone 2 • 5min cooldown • Total: 50min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-25",
+                            title: "TUESDAY NOV 25",
+                            subtitle: "Gym Session 3",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 30min jog at 8.5 km/h, 1% incline • 5min walk cooldown • Total: 40min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 4×12 @ 55kg",
+                                        "Step-Ups: 3×12 each leg (add light weight if comfortable)",
+                                        "Leg Extension: 3×15 @ 35kg",
+                                        "Seated Calf Raise: 3×15 @ 35kg",
+                                        "Plank to Side Plank Flow: 3×30 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-26",
+                            title: "WEDNESDAY NOV 26",
+                            subtitle: "REST DAY",
+                            rest: true
+                        }
+                    ]
+                },
+                {
+                    name: "Week 3 (Nov 27 - Dec 3)",
+                    phase: "BUILD",
+                    goal: "Increase intensity, build strength, progressive running volume",
+                    days: [
+                        {
+                            date: "2024-11-27",
+                            title: "THURSDAY NOV 27",
+                            subtitle: "Gym Session 1",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 35min jog at 9.0 km/h, 1% incline (Zone 3) • 5min walk cooldown • Total: 45min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 4×10 @ 60kg (4-second eccentric)",
+                                        "Walking Lunges: 3×20 steps total",
+                                        "Leg Extension: 4×12 @ 40kg",
+                                        "Calf Raises: 4×15 @ 70kg",
+                                        "Plank: 3×45 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-28",
+                            title: "FRIDAY NOV 28",
+                            subtitle: "Rouvy Session 1",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling - Intervals Introduced",
+                                    details: "5min warmup • 6×(3min Zone 3 / 2min Zone 2) - 30min • 10min Zone 2 cooldown • Total: 45min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-29",
+                            title: "SATURDAY NOV 29",
+                            subtitle: "Gym Session 2",
+                            activities: [
+                                {
+                                    name: "Treadmill - Tempo Run",
+                                    details: "5min walk warmup • 10min easy (8.0 km/h) • 15min tempo (9.5 km/h) Zone 3-4 • 10min easy (8.0 km/h) • 5min walk cooldown • Total: 45min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Bulgarian Split Squat: 4×10 each leg (add weight)",
+                                        "Leg Press: 4×10 @ 60kg",
+                                        "Hamstring Curls: 4×12 @ 35kg",
+                                        "Single-Leg Deadlift: 3×8 each leg",
+                                        "Mountain Climbers: 3×20 reps"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-11-30",
+                            title: "SUNDAY NOV 30",
+                            subtitle: "REST DAY",
+                            rest: true
+                        },
+                        {
+                            date: "2024-12-01",
+                            title: "MONDAY DEC 1",
+                            subtitle: "Rouvy Session 2",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min warmup • 45min steady in Zone 2 • 5min cooldown • Total: 55min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-02",
+                            title: "TUESDAY DEC 2",
+                            subtitle: "Gym Session 3",
+                            activities: [
+                                {
+                                    name: "Treadmill",
+                                    details: "5min walk warmup • 35min jog at 9.0 km/h, 1% incline • 5min walk cooldown • Total: 45min"
+                                },
+                                {
+                                    name: "Leg Strength - Ski-Specific",
+                                    list: [
+                                        "Leg Press: 4×10 @ 60kg (explosive up, slow down)",
+                                        "Lateral Step-Ups: 3×10 each side",
+                                        "Leg Extension: 4×12 @ 40kg",
+                                        "Jump Squats (low impact): 3×8 (if knee feels good)",
+                                        "Bicycle Crunches: 3×20 reps"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-03",
+                            title: "WEDNESDAY DEC 3",
+                            subtitle: "REST DAY",
+                            rest: true
+                        }
+                    ]
+                },
+                {
+                    name: "Week 4 (Dec 4-10)",
+                    phase: "BUILD",
+                    goal: "Increase intensity, build strength, progressive running volume",
+                    days: [
+                        {
+                            date: "2024-12-04",
+                            title: "THURSDAY DEC 4",
+                            subtitle: "Gym Session 1",
+                            activities: [
+                                {
+                                    name: "Treadmill - Interval Session",
+                                    details: "5min walk warmup • 10×(2min at 10.0 km/h / 90sec recovery at 7.5 km/h) - 35min • 5min walk cooldown • Total: 45min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 4×10 @ 65kg",
+                                        "Walking Lunges: 3×24 steps total",
+                                        "Leg Extension: 4×12 @ 45kg",
+                                        "Single-Leg Calf Raise: 4×12 each leg",
+                                        "Plank: 3×50 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-05",
+                            title: "FRIDAY DEC 5",
+                            subtitle: "Rouvy Session 1",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling - Hill Simulation",
+                                    details: "5min warmup • 40min with varied resistance (5min moderate / 5min higher resistance) Zone 2-3 • 10min easy cooldown • Total: 55min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-06",
+                            title: "SATURDAY DEC 6",
+                            subtitle: "Gym Session 2",
+                            activities: [
+                                {
+                                    name: "Treadmill - Long Run",
+                                    details: "5min walk warmup • 40min steady at 8.5-9.0 km/h, 1% incline (Zone 2-3) • 5min walk cooldown • Total: 50min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Bulgarian Split Squat: 4×12 each leg",
+                                        "Leg Press: 4×10 @ 65kg",
+                                        "Hamstring Curls: 4×12 @ 40kg",
+                                        "Box Step-Downs: 3×10 each leg (eccentric focus)",
+                                        "Russian Twists: 3×20 reps"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-07",
+                            title: "SUNDAY DEC 7",
+                            subtitle: "REST DAY",
+                            rest: true
+                        },
+                        {
+                            date: "2024-12-08",
+                            title: "MONDAY DEC 8",
+                            subtitle: "Rouvy Session 2",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling - Recovery Ride",
+                                    details: "5min warmup • 50min easy in Zone 1-2 • 5min cooldown • Total: 60min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-09",
+                            title: "TUESDAY DEC 9",
+                            subtitle: "Gym Session 3",
+                            activities: [
+                                {
+                                    name: "Treadmill - Tempo",
+                                    details: "5min walk warmup • 10min easy (8.0 km/h) • 20min tempo (9.5-10.0 km/h) Zone 3-4 • 10min easy (8.0 km/h) • 5min walk cooldown • Total: 50min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 5×8 @ 70kg (max effort on eccentric)",
+                                        "Squat to Box: 3×10",
+                                        "Leg Extension: 4×15 @ 45kg",
+                                        "Calf Raises: 4×20 @ 75kg",
+                                        "V-Ups: 3×12 reps"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-10",
+                            title: "WEDNESDAY DEC 10",
+                            subtitle: "REST DAY",
+                            rest: true
+                        }
+                    ]
+                },
+                {
+                    name: "Week 5 (Dec 11-17)",
+                    phase: "PEAK",
+                    goal: "Maintain fitness, slight volume reduction, stay fresh for travel",
+                    days: [
+                        {
+                            date: "2024-12-11",
+                            title: "THURSDAY DEC 11",
+                            subtitle: "Gym Session 1",
+                            activities: [
+                                {
+                                    name: "Treadmill - Quality Intervals",
+                                    details: "5min walk warmup • 8×(3min at 10.5 km/h / 2min recovery) - 40min • 5min walk cooldown • Total: 50min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Leg Press: 4×8 @ 75kg",
+                                        "Walking Lunges: 4×20 steps",
+                                        "Leg Extension: 4×12 @ 50kg",
+                                        "Plyometric Step-Ups: 3×8 each leg (if knee allows)",
+                                        "Plank with Leg Lift: 3×30 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-12",
+                            title: "FRIDAY DEC 12",
+                            subtitle: "Rouvy Session 1",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling - Sweet Spot Intervals",
+                                    details: "5min warmup • 5×(5min Zone 3 / 3min Zone 2) - 40min • 10min easy cooldown • Total: 55min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-13",
+                            title: "SATURDAY DEC 13",
+                            subtitle: "Gym Session 2",
+                            activities: [
+                                {
+                                    name: "Treadmill - Long Steady",
+                                    details: "5min walk warmup • 45min at 9.0 km/h, 1-2% incline (Zone 2-3) • 5min walk cooldown • Total: 55min"
+                                },
+                                {
+                                    name: "Leg Strength",
+                                    list: [
+                                        "Bulgarian Split Squat: 4×12 each leg",
+                                        "Leg Press: 4×8 @ 75kg",
+                                        "Hamstring Curls: 4×15 @ 40kg",
+                                        "Single-Leg Calf Raise: 4×15 each leg",
+                                        "Plank Variations: 4×40 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-14",
+                            title: "SUNDAY DEC 14",
+                            subtitle: "REST DAY",
+                            rest: true
+                        },
+                        {
+                            date: "2024-12-15",
+                            title: "MONDAY DEC 15",
+                            subtitle: "Rouvy Session 2",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min warmup • 50min steady Zone 2 • 5min cooldown • Total: 60min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-16",
+                            title: "TUESDAY DEC 16",
+                            subtitle: "Gym Session 3",
+                            activities: [
+                                {
+                                    name: "Treadmill - Mixed Pace",
+                                    details: "5min walk warmup • 15min easy (8.5 km/h) • 15min moderate (9.5 km/h) • 10min easy (8.5 km/h) • 5min walk cooldown • Total: 50min"
+                                },
+                                {
+                                    name: "Leg Strength - Ski Prep",
+                                    list: [
+                                        "Leg Press: 4×10 @ 70kg (focus on explosive power)",
+                                        "Lateral Lunges: 3×10 each side",
+                                        "Leg Extension: 4×15 @ 50kg",
+                                        "Wall Sit: 3×60 seconds",
+                                        "Core Circuit: 10min various exercises"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-17",
+                            title: "WEDNESDAY DEC 17",
+                            subtitle: "REST DAY",
+                            rest: true
+                        }
+                    ]
+                },
+                {
+                    name: "Week 6 (Dec 18-24) - TAPER",
+                    phase: "PEAK",
+                    goal: "Maintain fitness, slight volume reduction, stay fresh for travel",
+                    days: [
+                        {
+                            date: "2024-12-18",
+                            title: "THURSDAY DEC 18",
+                            subtitle: "Gym Session 1",
+                            activities: [
+                                {
+                                    name: "Treadmill - Moderate",
+                                    details: "5min walk warmup • 30min at 9.0 km/h, 1% incline • 5min walk cooldown • Total: 40min"
+                                },
+                                {
+                                    name: "Leg Strength - Reduced Volume",
+                                    list: [
+                                        "Leg Press: 3×10 @ 65kg",
+                                        "Walking Lunges: 3×16 steps",
+                                        "Leg Extension: 3×12 @ 45kg",
+                                        "Calf Raises: 3×15 @ 70kg",
+                                        "Plank: 3×40 seconds"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-19",
+                            title: "FRIDAY DEC 19",
+                            subtitle: "Rouvy Session 1",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min warmup • 35min easy Zone 2 • 5min cooldown • Total: 45min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-20",
+                            title: "SATURDAY DEC 20",
+                            subtitle: "Gym Session 2",
+                            activities: [
+                                {
+                                    name: "Treadmill - Easy Run",
+                                    details: "5min walk warmup • 25min easy at 8.5 km/h • 5min walk cooldown • Total: 35min"
+                                },
+                                {
+                                    name: "Leg Strength - Maintenance",
+                                    list: [
+                                        "Bulgarian Split Squat: 3×8 each leg",
+                                        "Leg Press: 3×10 @ 60kg",
+                                        "Leg Extension: 3×12 @ 40kg",
+                                        "Calf Raises: 3×15",
+                                        "Light Core Work: 10min"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-21",
+                            title: "SUNDAY DEC 21",
+                            subtitle: "REST DAY",
+                            rest: true
+                        },
+                        {
+                            date: "2024-12-22",
+                            title: "MONDAY DEC 22",
+                            subtitle: "Rouvy Session 2",
+                            activities: [
+                                {
+                                    name: "Indoor Cycling",
+                                    details: "5min warmup • 30min very easy Zone 1-2 • 5min cooldown • Total: 40min"
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-23",
+                            title: "TUESDAY DEC 23",
+                            subtitle: "Last Session Before Travel",
+                            activities: [
+                                {
+                                    name: "Treadmill - Shakeout",
+                                    details: "5min walk warmup • 20min easy at 8.0 km/h • 5min walk cooldown • Total: 30min"
+                                },
+                                {
+                                    name: "Leg Strength - Keep Fresh",
+                                    list: [
+                                        "Leg Press: 2×10 @ 55kg (easy)",
+                                        "Leg Extension: 2×12 @ 35kg",
+                                        "Calf Raises: 2×15",
+                                        "Stretch & Mobility: 15min"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            date: "2024-12-24",
+                            title: "WEDNESDAY DEC 24",
+                            subtitle: "REST DAY",
+                            rest: true
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let currentWeek = 0;
+        let completionData = {};
+        let notesData = {};
+
+        // Load saved data
+        function loadData() {
+            const saved = localStorage.getItem('skiPrepData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                completionData = parsed.completion || {};
+                notesData = parsed.notes || {};
+            }
+        }
+
+        // Save data
+        function saveData() {
+            localStorage.setItem('skiPrepData', JSON.stringify({
+                completion: completionData,
+                notes: notesData
+            }));
+            updateProgress();
+        }
+
+        // Get today's date string
+        function getTodayDate() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+
+        // Find which week contains today
+        function findCurrentWeek() {
+            const today = getTodayDate();
+            for (let i = 0; i < programData.weeks.length; i++) {
+                for (let day of programData.weeks[i].days) {
+                    if (day.date === today) {
+                        return i;
+                    }
+                }
+            }
+            return 0; // Default to week 1 if not found
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            let completed = 0;
+            let total = 0;
+
+            programData.weeks.forEach(week => {
+                week.days.forEach(day => {
+                    if (!day.rest) {
+                        total++;
+                        const dayKey = day.date;
+                        if (completionData[dayKey]) {
+                            const allCompleted = day.activities.every((_, idx) => 
+                                completionData[dayKey][idx] === true
+                            );
+                            if (allCompleted) completed++;
+                        }
+                    }
+                });
+            });
+
+            const percentage = total > 0 ? (completed / total) * 100 : 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${completed}/${total} sessions`;
+        }
+
+        // Render week
+        function renderWeek() {
+            const week = programData.weeks[currentWeek];
+            const today = getTodayDate();
+            
+            document.getElementById('weekTitle').textContent = week.name;
+            document.getElementById('prevWeek').disabled = currentWeek === 0;
+            document.getElementById('nextWeek').disabled = currentWeek === programData.weeks.length - 1;
+
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            // Week info
+            const weekInfo = document.createElement('div');
+            weekInfo.style.marginBottom = '20px';
+            weekInfo.style.padding = '15px';
+            weekInfo.style.background = '#1a1a2e';
+            weekInfo.style.borderRadius = '8px';
+            weekInfo.innerHTML = `
+                <div style="color: #4a9eff; font-weight: 600; margin-bottom: 5px;">Phase: ${week.phase}</div>
+                <div style="color: #888; font-size: 0.9rem;">${week.goal}</div>
+            `;
+            content.appendChild(weekInfo);
+
+            // Render days
+            week.days.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                
+                const isToday = day.date === today;
+                if (isToday) {
+                    dayCard.classList.add('today');
+                }
+
+                const dayKey = day.date;
+                
+                // Check if day is fully completed
+                if (!day.rest && completionData[dayKey]) {
+                    const allCompleted = day.activities.every((_, idx) => 
+                        completionData[dayKey][idx] === true
+                    );
+                    if (allCompleted) {
+                        dayCard.classList.add('completed');
+                    }
+                }
+
+                if (day.rest) {
+                    dayCard.innerHTML = `
+                        <div class="day-header">
+                            <div class="day-title">${day.title}</div>
+                            ${isToday ? '<div class="today-badge">Today</div>' : ''}
+                        </div>
+                        <div class="rest-day">
+                            <div class="rest-day-icon">😴</div>
+                            <div>Rest & Recovery Day</div>
+                        </div>
+                    `;
+                } else {
+                    let activitiesHTML = '';
+                    day.activities.forEach((activity, idx) => {
+                        const isChecked = completionData[dayKey] && completionData[dayKey][idx];
+                        
+                        let detailsHTML = '';
+                        if (activity.list) {
+                            detailsHTML = '<ul>' + activity.list.map(item => `<li>${item}</li>`).join('') + '</ul>';
+                        } else {
+                            detailsHTML = activity.details.replace(/•/g, '<br>•').replace(/\n/g, '<br>');
+                        }
+
+                        activitiesHTML += `
+                            <div class="activity-group">
+                                <div class="activity-header">
+                                    <div class="checkbox ${isChecked ? 'checked' : ''}" 
+                                         onclick="toggleActivity('${dayKey}', ${idx})"></div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">${activity.name}</div>
+                                        <div class="activity-details">${detailsHTML}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    const savedNotes = notesData[dayKey] || '';
+                    const completedBadge = dayCard.classList.contains('completed') ? 
+                        '<span class="completion-badge">✓ COMPLETED</span>' : '';
+
+                    dayCard.innerHTML = `
+                        <div class="day-header">
+                            <div>
+                                <div class="day-title">${day.title}${completedBadge}</div>
+                                <div style="color: #888; font-size: 0.85rem; margin-top: 4px;">${day.subtitle}</div>
+                            </div>
+                            ${isToday ? '<div class="today-badge">Today</div>' : ''}
+                        </div>
+                        ${activitiesHTML}
+                        <div class="notes-section">
+                            <div class="notes-label">Session Notes</div>
+                            <textarea class="notes-textarea" 
+                                      placeholder="How did this session go? Any observations about knee, energy levels, etc."
+                                      onchange="saveNotes('${dayKey}', this.value)">${savedNotes}</textarea>
+                        </div>
+                    `;
+                }
+
+                content.appendChild(dayCard);
+            });
+        }
+
+        // Toggle activity completion
+        window.toggleActivity = function(dayKey, activityIdx) {
+            if (!completionData[dayKey]) {
+                completionData[dayKey] = {};
+            }
+            completionData[dayKey][activityIdx] = !completionData[dayKey][activityIdx];
+            saveData();
+            renderWeek();
+        };
+
+        // Save notes
+        window.saveNotes = function(dayKey, notes) {
+            notesData[dayKey] = notes;
+            saveData();
+        };
+
+        // Navigation
+        document.getElementById('prevWeek').addEventListener('click', () => {
+            if (currentWeek > 0) {
+                currentWeek--;
+                renderWeek();
+            }
+        });
+
+        document.getElementById('nextWeek').addEventListener('click', () => {
+            if (currentWeek < programData.weeks.length - 1) {
+                currentWeek++;
+                renderWeek();
+            }
+        });
+
+        // Initialize
+        loadData();
+        currentWeek = findCurrentWeek();
+        renderWeek();
+        updateProgress();
+    </script>
+</body>
+</html>
